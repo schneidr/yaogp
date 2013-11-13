@@ -65,17 +65,14 @@ class YaOGP {
 			}
 
 			// galleries
-			$pattern = get_shortcode_regex();
-			if ( preg_match_all( '/'. $pattern .'/s', $post->post_content, $matches )
-		        && array_key_exists( 2, $matches ) ) {
-			        foreach ($matches[2] as $i => $tag) {
-			        	if ($tag == 'gallery') {
-			        		$ids = explode( '"', $matches[3][$i] );
-			        		$ids = explode( ',', $ids[1] );
-			        		$images = array_merge( $images, $ids );
-			        	}
-			        }
-			    }
+			if( has_shortcode( $post->post_content, 'gallery' ) ) {
+				$galleries = get_post_galleries( $post, false );
+				foreach ( $galleries as $gallery ) {
+					$ids = explode( ',', $gallery['ids'] );
+					$images = array_merge( $images, $ids );
+				}
+			}
+
 			/* gets all images attached to the post
 			 * not sure if this is a good idea, there might be images attached
 			 * which were not supposed to be published
