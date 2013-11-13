@@ -61,7 +61,7 @@ class YaOGP {
 			setup_postdata( $post );
 			$this->yaogp_meta( "title", get_the_title() );
 			$this->yaogp_meta( "url", get_permalink() );
-			$this->yaogp_meta( "description", get_the_excerpt() );
+			$this->yaogp_meta( "description", strip_tags( get_the_excerpt() ) );
 			$this->yaogp_meta( "type", "article" );
 			$images = array();
 			if ( has_post_thumbnail() ) {
@@ -113,7 +113,7 @@ class YaOGP {
 		if ( function_exists( 'add_image_size' ) ) { 
 			add_image_size( 'yaogp_thumb', $this->image_size, $this->image_size, true );
 		}
-		$this->regenerate_all_attachment_sizes();
+		// $this->regenerate_all_attachment_sizes();
 	}
 
 	function yaogp_meta( $name, $content, $prefix = "og" ) {
@@ -168,12 +168,12 @@ class YaOGP {
 						</td>
 					</tr>
 
-					<tr valign="top">
+					<!-- <tr valign="top">
 						<th scope="row">Image size</th>
 						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option('yaogp_image_size', $this->image_size); ?>" />
 							<p class="description">The size of the thumbnail that is provided int the og:image tag. Facebook requires a minimum of 200px, the default value is 500px.</p>
 						</td>
-					</tr>
+					</tr> -->
 
 					<tr valign="top">
 						<th scope="row">Facebook App-ID</th>
@@ -189,7 +189,6 @@ class YaOGP {
 						</td>
 					</tr>
 				</table>
-
 				<script type="text/javascript">
 				jQuery(document).ready(function($) {
 					var custom_uploader;
@@ -221,6 +220,8 @@ class YaOGP {
 				<?php submit_button(); ?>
 
 			</form>
+			<p class="description">You can test the result of this plugin in the <a href="https://developers.facebook.com/tools/debug" target="_blank">Facebook Developer Debugger</a> | For feature requests and bug reports feel free to <a href="http://scm.schneidr.de/yaogp/issues" target="_blank">open an issue in the bugtracker</a>.</p>
+
 		</div>
 		<?php
 	}
