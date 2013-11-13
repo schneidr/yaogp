@@ -13,8 +13,6 @@ Author URI: http://schneidr.de/
  * og:updated_time
  * og:video
  * og:audio
- * fb:app_id
- * fb:admins
  * fb:profile
  * https://developers.facebook.com/docs/reference/opengraph/object-type/object/
  * Localization
@@ -26,12 +24,12 @@ Author URI: http://schneidr.de/
 
 class YaOGP {
 
-	var $default_image;
-	var $image_size;
+	var $default_image = null;
+	var $image_size = 500;
+	var $fb_app_id = null;
+	var $fb_admin_id = null;
 
 	public function __construct() {
-		$this->default_image = "http://test.schneidr.de/wp-content/themes/twentythirteen/images/headers/circle.png";
-		$this->image_size = 500;
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
         add_action('wp_head', array($this, 'head'));
@@ -42,6 +40,10 @@ class YaOGP {
 		$this->yaogp_meta( "site_name", get_option("blogname") );
 		$this->yaogp_meta( "locale", get_locale() );
 		$this->yaogp_meta( "locale:alternate", get_locale() );
+		if ($this->fb_app_id != null)
+			$this->yaogp_meta( "fb:app_id", $this->fb_app_id );
+		if ($this->fb_admin_id != null)
+			$this->yaogp_meta( "fb:admins", $this->fb_admin_id );
 		if ( is_front_page() || is_home() ) {
 			// front page
 			$this->yaogp_meta( "title", get_option("blogname") );
@@ -58,12 +60,8 @@ class YaOGP {
 			$this->yaogp_meta( "description", get_the_excerpt() );
 			$this->yaogp_meta( "type", "article" );
 			$images = array();
-			$thumb_ID = 0;
 			if ( has_post_thumbnail() ) {
-				//$images[] = get_the_post_thumbnail();
-				$thumb_ID = get_post_thumbnail_id( $post->ID );
-				$img = wp_get_attachment_image_src( $thumb_ID, 'yaogp_thumb' );
-				$images[] = $img[0];
+				$images[] = get_post_thumbnail_id( $post->ID );
 			}
 
 			// galleries
@@ -74,10 +72,7 @@ class YaOGP {
 			        	if ($tag == 'gallery') {
 			        		$ids = explode('"', $matches[3][$i]);
 			        		$ids = explode(',', $ids[1]);
-			        		foreach ($ids as $id) {
-								$img = wp_get_attachment_image_src( $id, 'yaogp_thumb' );
-								$images[] = $img[0];
-			        		}
+			        		$images = array_merge($images, $ids);
 			        	}
 			        }
 			    }
@@ -92,11 +87,14 @@ class YaOGP {
 				$img = wp_get_attachment_image_src( $image->ID, 'yaogp_thumb' );
 				$images[] = $img[0];
 			}*/
-			if ( sizeof( $images ) == 0 ) {
+			if ( sizeof( $images ) == 0 && $this->default_image != null) {
 				$images[] = $this->default_image;
 			}
 			foreach ( $images as $image ) {
-				$this->yaogp_meta( "image", $image );
+				$img = wp_get_attachment_image_src( $image, 'yaogp_thumb' );
+				$this->yaogp_meta( "image", $img[0] );
+				//$this->yaogp_meta( "image:width", $img[1] );
+				//$this->yaogp_meta( "image:height", $img[2] );
 			}
 		}
 
