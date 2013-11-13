@@ -28,6 +28,7 @@ class YaOGP {
 	public function __construct() {
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
+		add_action( 'regenerate_thumbnails', array($this, 'regenerate_all_attachment_sizes' ) );
 		add_action( 'wp_head', array( $this, 'head' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action('admin_print_scripts', array( $this, 'admin_scripts' ) );
@@ -113,6 +114,7 @@ class YaOGP {
 		if ( function_exists( 'add_image_size' ) ) { 
 			add_image_size( 'yaogp_thumb', $this->image_size, $this->image_size, true );
 		}
+		wp_schedule_single_event( time(), array( $this, 'regenerate_thumbnails' ) );
 		// $this->regenerate_all_attachment_sizes();
 	}
 
