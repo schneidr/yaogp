@@ -24,15 +24,22 @@ Author URI: http://schneidr.de/
 
 class YaOGP {
 
-	var $default_image = null;
-	var $image_size = 500;
-	var $fb_app_id = null;
-	var $fb_admin_id = null;
+	var $default_image;
+	var $image_size;
+	var $fb_app_id;
+	var $fb_admin_id;
 
 	public function __construct() {
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
 		add_action( 'wp_head', array( $this, 'head' ) );
+		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
+		add_action('admin_print_scripts', array( $this, 'admin_scripts' ) );
+
+		$this->default_image = get_option("yaogp_default_image");
+		$this->image_size = get_option("yaogp_image_size", 500);
+		$this->fb_app_id = get_option("yaogp_fb_app_id");
+		$this->fb_admin_id = get_option("yaogp_fb_admin_id");
 	}
 
 	function head() {
@@ -50,7 +57,8 @@ class YaOGP {
 			$this->yaogp_meta( "url",get_option("siteurl") );
 			$this->yaogp_meta( "description", get_option("blogdescription") );
 			$this->yaogp_meta( "type", "website" );
-			$this->yaogp_meta( "image", $this->default_image );
+			$img = wp_get_attachment_image_src( $this->default_image, 'yaogp_thumb' );
+			$this->yaogp_meta( "image", $img[0] );
 		}
 		elseif ( is_single() || is_page() ) {
 			// single post or page
@@ -126,6 +134,92 @@ class YaOGP {
 				wp_update_attachment_metadata( $post->ID, wp_generate_attachment_metadata( $post->ID, $file ) );
 			}
 		}
+	}
+
+	function admin_scripts() {
+		wp_enqueue_media();
+	}
+
+	function admin_init() {
+		register_setting( 'yaogp', 'yaogp_default_image' );
+		register_setting( 'yaogp', 'yaogp_image_size' );
+		register_setting( 'yaogp', 'yaogp_fb_app_id' );
+		register_setting( 'yaogp', 'yaogp_fb_admin_id' );
+	}
+
+	function admin_menu() {
+		add_submenu_page( 'options-general.php', 'YaOGP Settings', 'YaOGP', 'administrator', __FILE__, array( $this, 'settings_page' ) );
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
+	}
+
+	function settings_page() {
+		$img = wp_get_attachment_image_src( get_option('yaogp_default_image'), 'thumbnail' );
+		$default_image_url = ($img) ? $img[0] : plugin_dir_url( __FILE__ ) . 'no_image.png';
+		?>
+		<div class="wrap">
+			<h2>Yet another Open Graph Plugin</h2>
+
+			<form method="post" action="options.php">
+				<?php settings_fields( 'yaogp' ); ?>
+				<?php do_settings_sections( 'yaogp' ); ?>
+				<table class="form-table">
+					<tr valign="top">
+						<th scope="row">Default image</th>
+						<td>
+							<img src="<?php echo $default_image_url; ?>" id="default_image" width="150" />
+							<input type="hidden" name="yaogp_default_image" id="yaogp_default_image" value="<?php echo get_option('yaogp_default_image', $this->default_image); ?>" />
+						</td>
+					</tr>
+
+					<tr valign="top">
+						<th scope="row">Image size</th>
+						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option('yaogp_image_size', $this->image_size); ?>" /></td>
+					</tr>
+
+					<tr valign="top">
+						<th scope="row">Facebook App-ID</th>
+						<td><input type="text" name="yaogp_fb_app_id" value="<?php echo get_option('yaogp_fb_app_id', $this->fb_app_id); ?>" /></td>
+					</tr>
+
+					<tr valign="top">
+						<th scope="row">Facebook Admin-IDs</th>
+						<td><input type="text" name="yaogp_fb_admin_id" value="<?php echo get_option('yaogp_fb_admin_id', $this->fb_admin_id); ?>" /></td>
+					</tr>
+				</table>
+
+				<script type="text/javascript">
+				jQuery(document).ready(function($) {
+					var custom_uploader;
+
+					$('#default_image').click(function(e) {
+				        e.preventDefault();
+				        if (custom_uploader) {
+				            custom_uploader.open();
+				            return;
+				        }
+				        custom_uploader = wp.media.frames.file_frame = wp.media({
+				            title: 'Choose Image',
+				            button: {
+				                text: 'Choose Image'
+				            },
+				            multiple: false
+				        });
+				        custom_uploader.on('select', function() {
+				            attachment = custom_uploader.state().get('selection').first().toJSON();
+				            console.log(attachment);
+				            $('#yaogp_default_image').val(attachment.id);
+							$('#default_image').attr('src', attachment.url);
+				        });
+				        custom_uploader.open();
+				    });
+				});
+				</script>
+
+				<?php submit_button(); ?>
+
+			</form>
+		</div>
+		<?php
 	}
 
 }
