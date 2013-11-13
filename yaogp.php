@@ -30,13 +30,23 @@ class YaOGP {
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
 		add_action( 'regenerate_thumbnails', array($this, 'regenerate_all_attachment_sizes' ) );
 		add_action( 'wp_head', array( $this, 'head' ) );
-		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
+		if (is_admin())
+		{
+			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
+			add_filter("plugin_action_links_yaogp/yaogp.php", array( $this, 'action_links' ) );
+		}
 		add_action('admin_print_scripts', array( $this, 'admin_scripts' ) );
 
 		$this->default_image = get_option("yaogp_default_image");
 		$this->image_size = get_option("yaogp_image_size", 500);
 		$this->fb_app_id = get_option("yaogp_fb_app_id");
 		$this->fb_admin_id = get_option("yaogp_fb_admin_id");
+	}
+
+	function action_links($links) {
+		$settings_link = '<a href="options-general.php?page=yaogp/yaogp.php">' . __('Settings') . '</a>';
+		array_unshift($links, $settings_link);
+		return $links;
 	}
 
 	function head() {
@@ -115,7 +125,6 @@ class YaOGP {
 			add_image_size( 'yaogp_thumb', $this->image_size, $this->image_size, true );
 		}
 		wp_schedule_single_event( time(), array( $this, 'regenerate_thumbnails' ) );
-		// $this->regenerate_all_attachment_sizes();
 	}
 
 	function yaogp_meta( $name, $content, $prefix = "og" ) {
@@ -196,26 +205,26 @@ class YaOGP {
 					var custom_uploader;
 
 					$('#default_image').click(function(e) {
-				        e.preventDefault();
-				        if (custom_uploader) {
-				            custom_uploader.open();
-				            return;
-				        }
-				        custom_uploader = wp.media.frames.file_frame = wp.media({
-				            title: 'Choose Image',
-				            button: {
-				                text: 'Choose Image'
-				            },
-				            multiple: false
-				        });
-				        custom_uploader.on('select', function() {
-				            attachment = custom_uploader.state().get('selection').first().toJSON();
-				            console.log(attachment);
-				            $('#yaogp_default_image').val(attachment.id);
+						e.preventDefault();
+						if (custom_uploader) {
+							custom_uploader.open();
+							return;
+						}
+						custom_uploader = wp.media.frames.file_frame = wp.media({
+							title: 'Choose Image',
+							button: {
+								text: 'Choose Image'
+							},
+							multiple: false
+						});
+						custom_uploader.on('select', function() {
+							attachment = custom_uploader.state().get('selection').first().toJSON();
+							console.log(attachment);
+							$('#yaogp_default_image').val(attachment.id);
 							$('#default_image').attr('src', attachment.url);
-				        });
-				        custom_uploader.open();
-				    });
+						});
+						custom_uploader.open();
+					});
 				});
 				</script>
 
@@ -231,6 +240,5 @@ class YaOGP {
 }
 
 $yaogp = new YaOGP();
-
 
 ?>
