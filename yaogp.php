@@ -10,7 +10,6 @@ Author URI: http://schneidr.de/
 
 /**
  * TODO
- * <meta property="og:image" content="http://schneidr.de/wp-content/uploads/2013/09/squeezelite_folder.png"/>
  * og:updated_time
  * og:video
  * og:audio
@@ -19,6 +18,10 @@ Author URI: http://schneidr.de/
  * fb:profile
  * https://developers.facebook.com/docs/reference/opengraph/object-type/object/
  * Localization
+ * admin ui
+ *  - default image URL
+ *  - Facebook App ID
+ *  - Facebook Admin ID
  **/
 
 class YaOGP {
@@ -30,6 +33,7 @@ class YaOGP {
 		$this->default_image = "http://test.schneidr.de/wp-content/themes/twentythirteen/images/headers/circle.png";
 		$this->image_size = 500;
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		register_activation_hook( __FILE__, array( $this, 'init' ) );
         add_action('wp_head', array($this, 'head'));
     }
 
@@ -61,7 +65,24 @@ class YaOGP {
 				$img = wp_get_attachment_image_src( $thumb_ID, 'yaogp_thumb' );
 				$images[] = $img[0];
 			}
-			$post_images = get_posts( array(
+
+			// galleries
+			$pattern = get_shortcode_regex();
+			if ( preg_match_all( '/'. $pattern .'/s', $post->post_content, $matches )
+		        && array_key_exists( 2, $matches ) ) {
+			        foreach ($matches[2] as $i => $tag) {
+			        	if ($tag == 'gallery') {
+			        		$ids = explode('"', $matches[3][$i]);
+			        		$ids = explode(',', $ids[1]);
+			        		foreach ($ids as $id) {
+								$img = wp_get_attachment_image_src( $id, 'yaogp_thumb' );
+								$images[] = $img[0];
+			        		}
+			        	}
+			        }
+			    }
+
+			/*$post_images = get_posts( array(
 				'post_parent' => $post->ID,
 				'post_type' => 'attachment',
 				'numberposts' => -1,
@@ -70,7 +91,7 @@ class YaOGP {
 			foreach ($post_images as $image) {
 				$img = wp_get_attachment_image_src( $image->ID, 'yaogp_thumb' );
 				$images[] = $img[0];
-			}
+			}*/
 			if ( sizeof( $images ) == 0 ) {
 				$images[] = $this->default_image;
 			}
@@ -78,16 +99,19 @@ class YaOGP {
 				$this->yaogp_meta( "image", $image );
 			}
 		}
+
+	}
+
+	function init() {
+		if ( function_exists( 'add_image_size' ) ) { 
+			add_image_size( 'yaogp_thumb', $this->image_size, $this->image_size, true );
+		}
 	}
 
 	function yaogp_meta($name, $content) {
 		echo sprintf("\t<meta property=\"og:%s\" content=\"%s\" />\n", $name, $content);
 	}
 
-}
-
-if ( function_exists( 'add_image_size' ) ) { 
-	add_image_size( 'yaogp_thumb', 500, 500, true );
 }
 
 $yaogp = new YaOGP();
