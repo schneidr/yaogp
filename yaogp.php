@@ -73,6 +73,12 @@ class YaOGP {
 				}
 			}
 
+			// single images in the post
+			preg_match_all("/wp-image-(\d+)/", $post->post_content, $imgs );
+			foreach ($imgs[1] as $img) {
+				$images[] = $img;
+			}
+
 			/* gets all images attached to the post
 			 * not sure if this is a good idea, there might be images attached
 			 * which were not supposed to be published
@@ -88,6 +94,8 @@ class YaOGP {
 			if ( sizeof( $images ) == 0 && $this->default_image != null) {
 				$images[] = $this->default_image;
 			}
+			// remove duplicate images
+			$images = array_unique( $images );
 			foreach ( $images as $image ) {
 				$img = wp_get_attachment_image_src( $image, 'yaogp_thumb' );
 				$this->yaogp_meta( "image", $img[0] );
