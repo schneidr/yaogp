@@ -32,7 +32,7 @@ class YaOGP {
 	public function __construct() {
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
-        add_action('wp_head', array($this, 'head'));
+        add_action( 'wp_head', array( $this, 'head' ) );
     }
 
 	function head() {
@@ -40,10 +40,10 @@ class YaOGP {
 		$this->yaogp_meta( "site_name", get_option("blogname") );
 		$this->yaogp_meta( "locale", get_locale() );
 		$this->yaogp_meta( "locale:alternate", get_locale() );
-		if ($this->fb_app_id != null)
-			$this->yaogp_meta( "fb:app_id", $this->fb_app_id );
-		if ($this->fb_admin_id != null)
-			$this->yaogp_meta( "fb:admins", $this->fb_admin_id );
+		if ( $this->fb_app_id != null )
+			$this->yaogp_meta( "app_id", $this->fb_app_id, 'fb' );
+		if ( $this->fb_admin_id != null )
+			$this->yaogp_meta( "admins", $this->fb_admin_id, 'fb' );
 		if ( is_front_page() || is_home() ) {
 			// front page
 			$this->yaogp_meta( "title", get_option("blogname") );
@@ -70,22 +70,23 @@ class YaOGP {
 		        && array_key_exists( 2, $matches ) ) {
 			        foreach ($matches[2] as $i => $tag) {
 			        	if ($tag == 'gallery') {
-			        		$ids = explode('"', $matches[3][$i]);
-			        		$ids = explode(',', $ids[1]);
-			        		$images = array_merge($images, $ids);
+			        		$ids = explode( '"', $matches[3][$i] );
+			        		$ids = explode( ',', $ids[1] );
+			        		$images = array_merge( $images, $ids );
 			        	}
 			        }
 			    }
-
-			/*$post_images = get_posts( array(
+			/* gets all images attached to the post
+			 * not sure if this is a good idea, there might be images attached
+			 * which were not supposed to be published
+			$post_images = get_posts( array(
 				'post_parent' => $post->ID,
 				'post_type' => 'attachment',
 				'numberposts' => -1,
 				'post_mime_type' => 'image',
-				'exclude' => $thumb_ID ) );
-			foreach ($post_images as $image) {
-				$img = wp_get_attachment_image_src( $image->ID, 'yaogp_thumb' );
-				$images[] = $img[0];
+				'exclude' => $images ) );
+			foreach ( $post_images as $image ) {
+				$images[] = $image->ID;
 			}*/
 			if ( sizeof( $images ) == 0 && $this->default_image != null) {
 				$images[] = $this->default_image;
@@ -106,8 +107,8 @@ class YaOGP {
 		}
 	}
 
-	function yaogp_meta($name, $content) {
-		echo sprintf("\t<meta property=\"og:%s\" content=\"%s\" />\n", $name, $content);
+	function yaogp_meta( $name, $content, $prefix = "og" ) {
+		echo sprintf( "\t<meta property=\"%s:%s\" content=\"%s\" />\n", $prefix, $name, $content );
 	}
 
 }
