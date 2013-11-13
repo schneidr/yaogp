@@ -16,10 +16,6 @@ Author URI: http://schneidr.de/
  * fb:profile
  * https://developers.facebook.com/docs/reference/opengraph/object-type/object/
  * Localization
- * admin ui
- *  - default image URL
- *  - Facebook App ID
- *  - Facebook Admin ID
  **/
 
 class YaOGP {
@@ -168,22 +164,29 @@ class YaOGP {
 						<td>
 							<img src="<?php echo $default_image_url; ?>" id="default_image" width="150" />
 							<input type="hidden" name="yaogp_default_image" id="yaogp_default_image" value="<?php echo get_option('yaogp_default_image', $this->default_image); ?>" />
+							<p class="description">This is the default image that is provided when your post or page doesn't contain any images. It is used on the front page as well. Click on the image to change it.</p>
 						</td>
 					</tr>
 
 					<tr valign="top">
 						<th scope="row">Image size</th>
-						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option('yaogp_image_size', $this->image_size); ?>" /></td>
+						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option('yaogp_image_size', $this->image_size); ?>" />
+							<p class="description">The size of the thumbnail that is provided int the og:image tag. Facebook requires a minimum of 200px, the default value is 500px.</p>
+						</td>
 					</tr>
 
 					<tr valign="top">
 						<th scope="row">Facebook App-ID</th>
-						<td><input type="text" name="yaogp_fb_app_id" value="<?php echo get_option('yaogp_fb_app_id', $this->fb_app_id); ?>" /></td>
+						<td><input type="text" name="yaogp_fb_app_id" value="<?php echo get_option('yaogp_fb_app_id', $this->fb_app_id); ?>" />
+							<p class="description">You can provide the ID of a Facebook App here. I have no idea what it is used for.</p>
+						</td>
 					</tr>
 
 					<tr valign="top">
 						<th scope="row">Facebook Admin-IDs</th>
-						<td><input type="text" name="yaogp_fb_admin_id" value="<?php echo get_option('yaogp_fb_admin_id', $this->fb_admin_id); ?>" /></td>
+						<td><input type="text" name="yaogp_fb_admin_id" value="<?php echo get_option('yaogp_fb_admin_id', $this->fb_admin_id); ?>" />
+							<p class="description">You can provide the Facebook Admin ID here. Multiple Admins can be separated with a comma. You can find your ID here: http://graph.facebook.com/&lt;your-profile&gt;. I have no idea what it is used for either.</p>
+						</td>
 					</tr>
 				</table>
 
