@@ -32,8 +32,8 @@ class YaOGP {
 	public function __construct() {
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
-        add_action( 'wp_head', array( $this, 'head' ) );
-    }
+		add_action( 'wp_head', array( $this, 'head' ) );
+	}
 
 	function head() {
 		global $post;
@@ -103,21 +103,34 @@ class YaOGP {
 				//$this->yaogp_meta( "image:height", $img[2] );
 			}
 		}
-
 	}
 
 	function init() {
 		if ( function_exists( 'add_image_size' ) ) { 
 			add_image_size( 'yaogp_thumb', $this->image_size, $this->image_size, true );
 		}
+		$this->regenerate_all_attachment_sizes();
 	}
 
 	function yaogp_meta( $name, $content, $prefix = "og" ) {
 		echo sprintf( "\t<meta property=\"%s:%s\" content=\"%s\" />\n", $prefix, $name, $content );
 	}
 
+	function regenerate_all_attachment_sizes() {
+		include_once( ABSPATH . 'wp-admin/includes/image.php' );
+		$args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => null, 'post_parent' => null, 'post_mime_type' => 'image' ); 
+		$attachments = get_posts( $args );
+		if ($attachments) {
+			foreach ( $attachments as $post ) {
+				$file = get_attached_file( $post->ID );
+				wp_update_attachment_metadata( $post->ID, wp_generate_attachment_metadata( $post->ID, $file ) );
+			}
+		}
+	}
+
 }
 
 $yaogp = new YaOGP();
+
 
 ?>
