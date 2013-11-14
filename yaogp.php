@@ -3,7 +3,7 @@
 Plugin Name: Yet another Open Graph Plugin
 Plugin URI: http://scm.schneidr.de/yaogp
 Description: This plugin adds Open Graph meta tags to your WordPress site
-Version: 0.1
+Version: 0.2
 Author: Gerald Schneider
 Author URI: http://schneidr.de/
 */
@@ -28,30 +28,30 @@ class YaOGP {
 	public function __construct() {
 		// load_plugin_textdomain( 'demo-plugin', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
 		register_activation_hook( __FILE__, array( $this, 'init' ) );
-		add_action( 'regenerate_thumbnails', array($this, 'regenerate_all_attachment_sizes' ) );
+		add_action( 'regenerate_thumbnails', array( $this, 'regenerate_all_attachment_sizes' ) );
 		add_action( 'wp_head', array( $this, 'head' ) );
-		if (is_admin())
+		if ( is_admin() )
 		{
 			add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-			add_filter("plugin_action_links_yaogp/yaogp.php", array( $this, 'action_links' ) );
+			add_filter( 'plugin_action_links_yaogp/yaogp.php', array( $this, 'action_links' ) );
 		}
-		add_action('admin_print_scripts', array( $this, 'admin_scripts' ) );
+		add_action( 'admin_print_scripts', array( $this, 'admin_scripts' ) );
 
-		$this->default_image = get_option("yaogp_default_image");
-		$this->image_size = get_option("yaogp_image_size", 500);
-		$this->fb_app_id = get_option("yaogp_fb_app_id");
-		$this->fb_admin_id = get_option("yaogp_fb_admin_id");
+		$this->default_image = get_option( "yaogp_default_image" );
+		$this->image_size = get_option( "yaogp_image_size", 500 );
+		$this->fb_app_id = get_option( "yaogp_fb_app_id" );
+		$this->fb_admin_id = get_option( "yaogp_fb_admin_id" );
 	}
 
-	function action_links($links) {
-		$settings_link = '<a href="options-general.php?page=yaogp/yaogp.php">' . __('Settings') . '</a>';
-		array_unshift($links, $settings_link);
+	function action_links( $links ) {
+		$settings_link = '<a href="options-general.php?page=yaogp/yaogp.php">' . __( 'Settings' ) . '</a>';
+		array_unshift( $links, $settings_link );
 		return $links;
 	}
 
 	function head() {
 		global $post;
-		$this->yaogp_meta( "site_name", get_option("blogname") );
+		$this->yaogp_meta( "site_name", get_option( "blogname" ) );
 		$this->yaogp_meta( "locale", get_locale() );
 		$this->yaogp_meta( "locale:alternate", get_locale() );
 		if ( $this->fb_app_id != null )
@@ -60,9 +60,9 @@ class YaOGP {
 			$this->yaogp_meta( "admins", $this->fb_admin_id, 'fb' );
 		if ( is_front_page() || is_home() ) {
 			// front page
-			$this->yaogp_meta( "title", get_option("blogname") );
-			$this->yaogp_meta( "url",get_option("siteurl") );
-			$this->yaogp_meta( "description", get_option("blogdescription") );
+			$this->yaogp_meta( "title", get_option( "blogname" ) );
+			$this->yaogp_meta( "url",get_option( "siteurl" ) );
+			$this->yaogp_meta( "description", get_option( "blogdescription" ) );
 			$this->yaogp_meta( "type", "website" );
 			$img = wp_get_attachment_image_src( $this->default_image, 'yaogp_thumb' );
 			$this->yaogp_meta( "image", $img[0] );
@@ -84,11 +84,11 @@ class YaOGP {
 				$galleries = get_post_galleries( $post, false );
 				foreach ( $galleries as $gallery ) {
 					$ids = explode( ',', $gallery['ids'] );
-					if ($ids[0] == "") {
+					if ( $ids[0] == "" ) {
 						$ids = array();
-						foreach ($gallery['src'] as $url) {
-							$id = $this->get_id_from_url($url);
-							if ($id != null) {
+						foreach ( $gallery['src'] as $url ) {
+							$id = $this->get_id_from_url( $url );
+							if ( $id != null ) {
 								$ids[] = $id;
 							}
 							else {
@@ -101,10 +101,10 @@ class YaOGP {
 			}
 
 			// single images in the post
-			preg_match_all("/<img.+?src=\"(.+?)\".+?>/", $post->post_content, $imgs );
-			foreach ($imgs[1] as $url) {
-				$id = $this->get_id_from_url($url);
-				if ($id != null) {
+			preg_match_all( "/<img.+?src=\"(.+?)\".+?>/", $post->post_content, $imgs );
+			foreach ( $imgs[1] as $url ) {
+				$id = $this->get_id_from_url( $url );
+				if ( $id != null ) {
 					$images[] = $id;
 				}
 				else {
@@ -130,7 +130,7 @@ class YaOGP {
 			// remove duplicate images
 			$images = array_unique( $images );
 			foreach ( $images as $image ) {
-				if (is_numeric($image)) {
+				if ( is_numeric( $image ) ) {
 					$img = wp_get_attachment_image_src( $image, 'yaogp_thumb' );
 					$url = $img[0];
 				}
@@ -159,7 +159,7 @@ class YaOGP {
 		include_once( ABSPATH . 'wp-admin/includes/image.php' );
 		$args = array( 'post_type' => 'attachment', 'numberposts' => -1, 'post_status' => null, 'post_parent' => null, 'post_mime_type' => 'image' ); 
 		$attachments = get_posts( $args );
-		if ($attachments) {
+		if ( $attachments ) {
 			foreach ( $attachments as $post ) {
 				$file = get_attached_file( $post->ID );
 				wp_update_attachment_metadata( $post->ID, wp_generate_attachment_metadata( $post->ID, $file ) );
@@ -184,8 +184,8 @@ class YaOGP {
 	}
 
 	function settings_page() {
-		$img = wp_get_attachment_image_src( get_option('yaogp_default_image'), 'thumbnail' );
-		$default_image_url = ($img) ? $img[0] : plugin_dir_url( __FILE__ ) . 'no_image.png';
+		$img = wp_get_attachment_image_src( get_option( 'yaogp_default_image' ), 'thumbnail' );
+		$default_image_url = ( $img ) ? $img[0] : plugin_dir_url( __FILE__ ) . 'no_image.png';
 		?>
 		<div class="wrap">
 			<h2>Yet another Open Graph Plugin</h2>
@@ -198,28 +198,28 @@ class YaOGP {
 						<th scope="row">Default image</th>
 						<td>
 							<img src="<?php echo $default_image_url; ?>" id="default_image" width="150" />
-							<input type="hidden" name="yaogp_default_image" id="yaogp_default_image" value="<?php echo get_option('yaogp_default_image', $this->default_image); ?>" />
+							<input type="hidden" name="yaogp_default_image" id="yaogp_default_image" value="<?php echo get_option( 'yaogp_default_image', $this->default_image ); ?>" />
 							<p class="description">This is the default image that is provided when your post or page doesn't contain any images. It is used on the front page as well. Click on the image to change it.</p>
 						</td>
 					</tr>
 
 					<!-- <tr valign="top">
 						<th scope="row">Image size</th>
-						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option('yaogp_image_size', $this->image_size); ?>" />
+						<td><input type="text" name="yaogp_image_size" value="<?php echo get_option( 'yaogp_image_size', $this->image_size ); ?>" />
 							<p class="description">The size of the thumbnail that is provided int the og:image tag. Facebook requires a minimum of 200px, the default value is 500px.</p>
 						</td>
 					</tr> -->
 
 					<tr valign="top">
 						<th scope="row">Facebook App-ID</th>
-						<td><input type="text" name="yaogp_fb_app_id" value="<?php echo get_option('yaogp_fb_app_id', $this->fb_app_id); ?>" />
+						<td><input type="text" name="yaogp_fb_app_id" value="<?php echo get_option( 'yaogp_fb_app_id', $this->fb_app_id ); ?>" />
 							<p class="description">You can provide the ID of a Facebook App here. I have no idea what it is used for.</p>
 						</td>
 					</tr>
 
 					<tr valign="top">
 						<th scope="row">Facebook Admin-IDs</th>
-						<td><input type="text" name="yaogp_fb_admin_id" value="<?php echo get_option('yaogp_fb_admin_id', $this->fb_admin_id); ?>" />
+						<td><input type="text" name="yaogp_fb_admin_id" value="<?php echo get_option( 'yaogp_fb_admin_id', $this->fb_admin_id ); ?>" />
 							<p class="description">You can provide the Facebook Admin ID here. Multiple Admins can be separated with a comma. You can find your ID here: http://graph.facebook.com/&lt;your-profile&gt;. I have no idea what it is used for either.</p>
 						</td>
 					</tr>
