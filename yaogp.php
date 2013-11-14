@@ -91,6 +91,9 @@ class YaOGP {
 							if ($id != null) {
 								$ids[] = $id;
 							}
+							else {
+								$ids[] = $url;
+							}
 						}
 					}
 					$images = array_merge( $images, $ids );
@@ -98,9 +101,15 @@ class YaOGP {
 			}
 
 			// single images in the post
-			preg_match_all("/wp-image-(\d+)/", $post->post_content, $imgs );
-			foreach ($imgs[1] as $img) {
-				$images[] = $img;
+			preg_match_all("/<img.+?src=\"(.+?)\".+?>/", $post->post_content, $imgs );
+			foreach ($imgs[1] as $url) {
+				$id = $this->get_id_from_url($url);
+				if ($id != null) {
+					$images[] = $id;
+				}
+				else {
+					$images[] = $url;
+				}
 			}
 
 			/* gets all images attached to the post
@@ -121,8 +130,14 @@ class YaOGP {
 			// remove duplicate images
 			$images = array_unique( $images );
 			foreach ( $images as $image ) {
-				$img = wp_get_attachment_image_src( $image, 'yaogp_thumb' );
-				$this->yaogp_meta( "image", $img[0] );
+				if (is_numeric($image)) {
+					$img = wp_get_attachment_image_src( $image, 'yaogp_thumb' );
+					$url = $img[0];
+				}
+				else {
+					$url = $image;
+				}
+				$this->yaogp_meta( "image", $url );
 				//$this->yaogp_meta( "image:width", $img[1] );
 				//$this->yaogp_meta( "image:height", $img[2] );
 			}
