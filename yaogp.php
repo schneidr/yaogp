@@ -84,6 +84,15 @@ class YaOGP {
 				$galleries = get_post_galleries( $post, false );
 				foreach ( $galleries as $gallery ) {
 					$ids = explode( ',', $gallery['ids'] );
+					if ($ids[0] == "") {
+						$ids = array();
+						foreach ($gallery['src'] as $url) {
+							$id = $this->get_id_from_url($url);
+							if ($id != null) {
+								$ids[] = $id;
+							}
+						}
+					}
 					$images = array_merge( $images, $ids );
 				}
 			}
@@ -235,6 +244,12 @@ class YaOGP {
 
 		</div>
 		<?php
+	}
+
+	function get_id_from_url ( $url ) {
+		global $wpdb;
+		$filename = basename( $url );
+		return $wpdb->get_var( "SELECT post_id AS ID FROM {$wpdb->postmeta} WHERE meta_value LIKE '%$filename%'" );
 	}
 
 }
