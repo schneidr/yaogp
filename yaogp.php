@@ -261,7 +261,7 @@ class YaOGP {
 		<?php
 	}
 
-	function get_id_from_url ( $url ) {
+	function get_id_from_url( $url ) {
 		global $wpdb;
 		$filename = basename( $url );
 		return $wpdb->get_var( "SELECT post_id AS ID FROM {$wpdb->postmeta} WHERE meta_value LIKE '%$filename%'" );
